@@ -1,0 +1,5 @@
+[preferred]
+# Merge the FileChooser line into the session's existing portal configuration.
+# The existing Telorgon ScreenCast backend keeps its own bus name.
+org.freedesktop.impl.portal.FileChooser=telorgon-file-explorer
+org.freedesktop.impl.portal.ScreenCast=telorgon

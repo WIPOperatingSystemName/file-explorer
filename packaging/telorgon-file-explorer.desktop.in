@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Telorgon Files
+GenericName=File Manager
+Comment=Browse files, choose destinations, and manage downloads
+Exec=@EXEC@ %U
+Icon=system-file-manager
+Terminal=false
+Categories=System;FileTools;FileManager;
+MimeType=inode/directory;
+StartupNotify=true
+Keywords=Files;Folders;Explorer;Downloads;Telorgon;

@@ -1,0 +1,4 @@
+[portal]
+DBusName=org.freedesktop.impl.portal.desktop.telorgon.FileExplorer
+Interfaces=org.freedesktop.impl.portal.FileChooser;
+UseIn=telorgon;telorgon-test-shell;
