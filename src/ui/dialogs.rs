@@ -454,7 +454,11 @@ Ctrl+T/W: new/close tab · Ctrl+Shift+N: new folder · Esc: cancel",
         let downloading = request.mode == PickerMode::Download
             && jobs.iter().any(|job| !job.status.is_finished());
         let choices_content_height = (request.choices.len() as f32 * 42.0 - 8.0).max(0.0);
-        let choices_height = choices_content_height.min(118.0);
+        let choices_height = choices_content_height.min(if self.viewport_size().height < 600.0 {
+            42.0
+        } else {
+            118.0
+        });
         let choices_extra = if request.choices.is_empty() {
             0.0
         } else {
@@ -558,7 +562,22 @@ Ctrl+T/W: new/close tab · Ctrl+Shift+N: new folder · Esc: cancel",
             .get(self.filter_index)
             .map(|filter| filter.name.as_str())
             .unwrap_or("All files");
-        let filter_width = (self.viewport_size().width * 0.32).clamp(200.0, 360.0);
+        let accept_label = if downloaded {
+            "Done"
+        } else if downloading {
+            "Downloading…"
+        } else {
+            request.accept_label.as_deref().unwrap_or(match request.mode {
+                PickerMode::Save => "Save",
+                PickerMode::SaveFiles | PickerMode::Folder => "Choose folder",
+                PickerMode::Download => "Download",
+                _ => "Open",
+            })
+        };
+        let accept_width = (accept_label.chars().count() as f32 * 7.0 + 28.0).clamp(76.0, 240.0);
+        let filter_width = (self.viewport_size().width * 0.32)
+            .clamp(100.0, 360.0)
+            .min((self.viewport_size().width - 236.0 - accept_width).max(80.0));
         footer.child(
             row()
                 .width(Dimension::FILL)
@@ -601,21 +620,7 @@ Ctrl+T/W: new/close tab · Ctrl+Shift+N: new folder · Esc: cancel",
                         .on_press(|this: &mut Self| this.cancel()),
                 )
                 .child(
-                    primary(if downloaded {
-                        "Done"
-                    } else if downloading {
-                        "Downloading…"
-                    } else {
-                        request
-                            .accept_label
-                            .as_deref()
-                            .unwrap_or(match request.mode {
-                                PickerMode::Save => "Save",
-                                PickerMode::SaveFiles | PickerMode::Folder => "Choose folder",
-                                PickerMode::Download => "Download",
-                                _ => "Open",
-                            })
-                    })
+                    primary(accept_label)
                     .enabled(
                         !downloading
                             && !state.loading
@@ -629,7 +634,12 @@ Ctrl+T/W: new/close tab · Ctrl+Shift+N: new folder · Esc: cancel",
         )
     }
     pub(super) fn downloads_panel(&self, jobs: &[DownloadJob]) -> Container {
-        let height = (jobs.len().min(3) as f32 * 52.0 + 52.0).min(210.0);
+        let visible_jobs = if self.viewport_size().height < 600.0 {
+            1
+        } else {
+            3
+        };
+        let height = (jobs.len().min(visible_jobs) as f32 * 52.0 + 52.0).min(210.0);
         let mut rows = content(jobs.len() as f32 * 52.0).gap(4.0);
         for job in jobs.iter().rev() {
             let id = job.id;

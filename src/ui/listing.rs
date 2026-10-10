@@ -3,6 +3,7 @@ use crate::{fs::Entry, model::Preview};
 impl Explorer {
     pub(super) fn listing(&self, state: &Snapshot, entries: &[Entry]) -> Container {
         let grid = self.preferences.view_mode == "grid";
+        let compact = self.viewport_size().width < 900.0;
         let ordered = Arc::new(
             entries
                 .iter()
@@ -76,15 +77,15 @@ impl Explorer {
                                     .overflow(telorgon::ui::Overflow::Clip),
                                 ),
                         )
-                        .child(
+                        .children((!compact).then(||
                             label(
                                 entry.modified.map(date).unwrap_or_else(|| "—".into()),
                                 12.0,
                                 MUTED,
                             )
-                            .width(160.0),
-                        )
-                        .child(label(&entry.kind, 12.0, MUTED).width(140.0))
+                            .width(160.0)
+                        ))
+                        .children((!compact).then(|| label(&entry.kind, 12.0, MUTED).width(140.0)))
                         .child(
                             label(
                                 if entry.is_dir {
@@ -147,12 +148,12 @@ impl Explorer {
                         ..Default::default()
                     })
                     .child(self.column_header("Name", "name", Dimension::FILL))
-                    .child(self.column_header(
+                    .children((!compact).then(|| self.column_header(
                         "Date modified",
                         "modified",
                         Dimension::Logical(160.0),
-                    ))
-                    .child(self.column_header("Type", "type", Dimension::Logical(140.0)))
+                    )))
+                    .children((!compact).then(|| self.column_header("Type", "type", Dimension::Logical(140.0))))
                     .child(self.column_header("Size", "size", Dimension::Logical(85.0))),
             );
         }
