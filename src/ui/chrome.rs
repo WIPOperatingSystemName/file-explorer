@@ -163,7 +163,7 @@ impl Explorer {
                 .set(this.browser().snapshot().directory.to_string_lossy());
             this.location.finish_editing();
         });
-        let search_width = (self.viewport_size().width * 0.245).clamp(230.0, 340.0);
+        let search_width = (self.viewport_size().width * 0.245).clamp(160.0, 340.0);
         let search_placeholder = format!(
             "Search {}",
             if state.directory == home_directory() {
@@ -260,13 +260,13 @@ impl Explorer {
             .background(COMMAND_BAR);
         if state.trash.is_some() {
             commands = commands.child(
-                command("Restore selected", "refresh")
+                self.adaptive_command("Restore selected", "refresh")
                     .enabled(!state.selected.is_empty() && !state.busy)
                     .on_press(|this: &mut Self| this.browser().restore_selected()),
             );
         } else {
             commands = commands.child(
-                command("New ▾", "plus")
+                self.adaptive_command("New ▾", "plus")
                     .accessible_label("New folder")
                     .enabled(!state.busy)
                     .on_press(|this: &mut Self| {
@@ -312,7 +312,7 @@ impl Explorer {
         commands
             .child(command_divider())
             .child(
-                command("Sort ▾", "sort")
+                self.adaptive_command("Sort ▾", "sort")
                     .accessible_label(format!(
                         "Sort: {} {}",
                         self.preferences.sort_by,
@@ -325,7 +325,7 @@ impl Explorer {
                     .on_press(|this: &mut Self| this.dialog = Dialog::Sort),
             )
             .child(
-                command("View ▾", "list")
+                self.adaptive_command("View ▾", "list")
                     .accessible_label(target_view)
                     .on_press(|this: &mut Self| this.dialog = Dialog::View),
             )
@@ -334,7 +334,7 @@ impl Explorer {
             )
             .child(spacer())
             .child(
-                command("Details", "details")
+                self.adaptive_command("Details", "details")
                     .accessible_label("Properties")
                     .enabled(state.selected.len() == 1 || state.preview.is_some())
                     .on_press(|this: &mut Self| {
@@ -346,6 +346,14 @@ impl Explorer {
                         }
                     }),
             )
+    }
+
+    fn adaptive_command(&self, label: &str, icon: &str) -> Button {
+        if self.viewport_size().width < 800.0 {
+            icon_button(label, icon)
+        } else {
+            command(label, icon)
+        }
     }
 }
 

@@ -163,8 +163,8 @@ fn run() -> std::result::Result<i32, Box<dyn std::error::Error>> {
         .assets(assets::bundle())
         .window(
             Window::new(title)
-                .size(1240, 800)
-                .minimum_size(800, 680)
+                .size(1000, 560)
+                .minimum_size(640, 480)
                 .content(explorer),
         )
         .run();

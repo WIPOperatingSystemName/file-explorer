@@ -278,7 +278,7 @@ impl Component for Explorer {
             self.dialog,
             Dialog::Context | Dialog::More | Dialog::Sort | Dialog::View | Dialog::Filters
         );
-        let menu_left = match self.dialog {
+        let menu_left: f32 = match self.dialog {
             Dialog::Sort => {
                 if self.picker_mode() {
                     115.0
@@ -310,6 +310,7 @@ impl Component for Explorer {
             _ => 24.0,
         };
         let filter_menu = matches!(self.dialog, Dialog::Filters);
+        let menu_left = menu_left.min((self.viewport_size().width - 284.0).max(24.0));
         stack()
             .width(Dimension::FILL)
             .height(Dimension::FILL)
@@ -324,6 +325,8 @@ impl Component for Explorer {
                         Insets::new(
                             if filter_menu {
                                 24.0
+                            } else if self.viewport_size().height < 600.0 {
+                                100.0
                             } else if self.picker_mode() {
                                 150.0
                             } else {
@@ -348,7 +351,16 @@ impl Component for Explorer {
                     } else {
                         Alignment::Center
                     })
-                    .child(self.dialog_view(&state))
+                    .child(if menu {
+                        column()
+                            .width(260.0)
+                            .height(Dimension::FILL)
+                            .scrollable()
+                            .child(self.dialog_view(&state))
+                            .into_element()
+                    } else {
+                        self.dialog_view(&state).into_element()
+                    })
             }))
     }
 }

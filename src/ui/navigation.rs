@@ -122,7 +122,7 @@ impl Explorer {
         }
 
         column()
-            .width(220.0)
+            .width(if self.viewport_size().width < 800.0 { 160.0 } else { 220.0 })
             .height(Dimension::FILL)
             .padding((8.0, 0.0))
             .background(PANEL)

@@ -3,7 +3,7 @@ use super::*;
 #[test]
 fn minimum_and_tiled_windows_keep_list_and_picker_controls_inside_visible_bounds() {
     let folder = Folder::new();
-    for width in [800, 957, 1080] {
+    for (width, height) in [(640, 480), (800, 480), (1000, 560), (957, 680), (1080, 680)] {
         for request in [
             None,
             Some(PickerRequest {
@@ -27,7 +27,7 @@ fn minimum_and_tiled_windows_keep_list_and_picker_controls_inside_visible_bounds
             let explorer = folder.explorer(request, false);
             let mut runtime = telorgon::ComposedAppRuntime::from_composed_with_extent(
                 explorer,
-                SizeI { width, height: 680 },
+                SizeI { width, height },
             )
             .unwrap();
             runtime.register_assets(crate::assets::bundle()).unwrap();
@@ -66,7 +66,7 @@ fn minimum_and_tiled_windows_keep_list_and_picker_controls_inside_visible_bounds
                     layout.border_rect.x >= 0.0
                         && layout.border_rect.right() <= width as f32 + 0.5
                         && layout.border_rect.y >= 0.0
-                        && layout.border_rect.bottom() <= 680.5,
+                        && layout.border_rect.bottom() <= height as f32 + 0.5,
                     "{name} is outside minimum window: {:?}",
                     layout.border_rect
                 );
@@ -101,8 +101,8 @@ fn maximum_picker_choices_keep_destination_and_accept_controls_visible() {
     let mut runtime = telorgon::ComposedAppRuntime::from_composed_with_extent(
         folder.explorer(Some(request), false),
         SizeI {
-            width: 800,
-            height: 680,
+            width: 640,
+            height: 480,
         },
     )
     .unwrap();
@@ -114,7 +114,7 @@ fn maximum_picker_choices_keep_destination_and_accept_controls_visible() {
         let node = named_button(runtime.ui(), name).unwrap();
         let layout = runtime.layout().computed(node).unwrap();
         assert!(
-            layout.border_rect.bottom() <= 680.5,
+            layout.border_rect.bottom() <= 480.5,
             "{name} escaped window: {:?}",
             layout.border_rect
         );
