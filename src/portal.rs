@@ -532,8 +532,9 @@ fn run_picker_program(
     payload: Vec<u8>,
     cancelled: Arc<AtomicBool>,
 ) -> io::Result<PickerResponse> {
-    let child = Command::new(executable)
-        .arg("--request-stdin")
+    let mut command = Command::new(executable);
+    tie_to_backend(&mut command);
+    let child = command.arg("--request-stdin")
         .process_group(0)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -583,6 +584,24 @@ fn run_picker_program(
     }
 }
 
+fn tie_to_backend(command: &mut Command) {
+    #[cfg(target_os = "linux")]
+    {
+        let parent = unsafe { libc::getpid() };
+        // A killed backend cannot run cancellation or ReapChild::drop. Revoke
+        // its dialog even then, and close the fork/prctl parent-death race.
+        unsafe {
+            command.pre_exec(move || {
+                if libc::prctl(libc::PR_SET_PDEATHSIG, libc::SIGKILL) != 0 {
+                    return Err(io::Error::last_os_error());
+                }
+                if libc::getppid() != parent { return Err(io::Error::other("File dialog backend stopped")); }
+                Ok(())
+            });
+        }
+    }
+}
+
 struct FileManager {
     active: Arc<AtomicUsize>,
 }
@@ -627,6 +646,7 @@ fn launch_explorer(
     for path in paths {
         let slot = ActiveSlot::acquire(active.clone())?;
         let mut command = Command::new(&executable);
+        tie_to_backend(&mut command);
         command
             .arg(action)
             .arg(path)
